@@ -10,7 +10,7 @@ load_state: 1
 save_hists: 1
 
 run_path: /home/akajal/DiVAE/outputs/2022-03-11/15-21-04/wandb/run-20220311_152104-2junzvyl/files/GumBoltCaloCRBM_calo_default_latest.pth
- 
+
 input_model: 
 create_plots: 0
 

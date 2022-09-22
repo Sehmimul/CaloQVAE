@@ -147,7 +147,7 @@ class ChimeraRBM(RBM):
     @property
     def pruned_edge_list(self):
         return self._pruned_edge_list
-        
+
 if __name__=="__main__":
     logger.debug("Testing chimeraRBM")
     cRBM = ChimeraRBM(8, 8)

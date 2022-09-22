@@ -61,7 +61,7 @@ def rbm_to_ising(rbm_weights, rbm_visible_bias, rbm_hidden_bias):
     ising_hbias = rbm_hidden_bias/2. + torch.sum(rbm_weights, dim=0)/4.
     
     return ising_weights, ising_vbias, ising_hbias
-    
+
 
 def sample_energies_exp_ising(rbm_weights, rbm_visible_bias, rbm_hidden_bias, rbm_vis, rbm_hid):
     """
@@ -121,6 +121,43 @@ def ising_energies_exp(ising_weights, ising_visible_bias, ising_hidden_bias, isi
                       + torch.matmul(ising_hid, hbias))
     return ising_energies
 
+def ising_energy_rbm(rbm_weights, rbm_visible_bias, rbm_hidden_bias, rbm_vis, rbm_hid):
+    """
+    Computes the energies produced by a randomly initialized Ising Model
+    Using Parameters of an RBM. More detail is in:
+    https://www.overleaf.com/5977645298fpvbhhnphxpy
+    Energy:- rbm_vis^T rbm_weights rbm_hid + rbm_vis_bias ^ T rbm_vis + rbm_hid_bias ^ T rbm_hid + offset
+    the offset term arises as we make the conversion from ising to rbm variables: V:{-1,1} -> {0,1}
+    """
+    # Calculate offset term
+    ising_weights = rbm_weights/4
+    ising_visible_bias = 0.5*rbm_visible_bias + 0.25*torch.sum(rbm_weights, dim=1)
+    ising_hidden_bias = 0.5*rbm_hidden_bias + 0.25*torch.sum(rbm_weights, dim=0)
+    w_sum = torch.sum(torch.sum(ising_weights, dim=0))
+    v_bias_sum = torch.sum(ising_visible_bias, dim=0)
+    h_bias_sum = torch.sum(ising_hidden_bias, dim=0)
+    offset = w_sum - v_bias_sum - h_bias_sum
+    
+    # Device
+    # preprocess weights (batchSize * nVis * nHid)
+    rbm_weights = rbm_weights + torch.zeros((rbm_vis.size(0),) + rbm_weights.size(), device=rbm_vis.device)
+    rbm_visible_bias = rbm_visible_bias.to(rbm_vis.device)
+    rbm_hidden_bias = rbm_hidden_bias.to(rbm_hid.device)
+    
+    # preprocess from (batchSize * nVis) to (batchSize * 1 * nVis)
+    vis = rbm_vis.unsqueeze(2).permute(0, 2, 1)
+    # preprocess from (batchSize * nHid) to (batchSize * nHid * 1)
+    hid = rbm_hid.unsqueeze(2)
+    
+    # compute the energy of the RBM
+    rbm_energy = (torch.matmul(vis, torch.matmul(rbm_weights, hid)).reshape(-1) 
+                + torch.matmul(rbm_vis, rbm_visible_bias)
+                + torch.matmul(rbm_hid, rbm_hidden_bias))
+    
+    # rbm_energy+offset gives total energy
+    return rbm_energy+offset
+
+
 def plot_sample_energies(energies):
     """
     Plot the energies of the samples produced by the histograms        
@@ -137,7 +174,7 @@ def plot_sample_energies(energies):
     
     plt.show()
     plt.close()
-    
+
 def batch_dwave_samples(response):
     """
     sampler.sample_ising() method returns a nested SampleSet structure
@@ -180,7 +217,7 @@ def plot_betas(betas):
     
     plt.show()
     plt.close()
-    
+
 def load_state(model, run_path, device):
     model_loc = run_path
     

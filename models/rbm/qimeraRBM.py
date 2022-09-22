@@ -36,7 +36,7 @@ class QimeraRBM(RBM):
         visible_qubit_idxs = []
         hidden_qubit_idxs = []
         
-        qpu_sampler = DWaveSampler(solver={"topology__type":"chimera", "chip_id":"DW_2000Q_6"})
+        qpu_sampler = DWaveSampler(solver={"topology__type":"chimera", "chip_id":"DW_2000Q_6"}, token="DEV-3f2d995f7cc156db3ee4077a24fcc9fbb69f48ea")
         qpu_nodes = qpu_sampler.nodelist
         qpu_edges = qpu_sampler.edgelist
         
@@ -136,10 +136,10 @@ class QimeraRBM(RBM):
     @property
     def pruned_edge_list(self):
         return self._pruned_edge_list
-        
+
 if __name__=="__main__":
     logger.debug("Testing chimeraRBM")
     cRBM = QimeraRBM(8, 8)
     print(cRBM.weights)
     logger.debug("Success")
-    
+
